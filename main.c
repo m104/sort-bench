@@ -44,7 +44,7 @@ void print_algorithms_list() {
 
   for (i = 0; i < algorithm_count; i++) {
     algo = algorithms + i;
-    printf("%i. %s - %s\n", i + 1, algo->code, algo->name);
+    printf("[ %s ]  %s\n", algo->code, algo->name);
     printf("%s\n", algo->description);
     printf("\n");
   }
