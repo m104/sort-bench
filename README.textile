@@ -1,0 +1,14 @@
+h1. Sort Bench
+
+Want to try your hand at sorting algorithms?  Need a place to test out
+your latest sorting function?  Sort Bench is a simple program which you
+can use to easily test and benchmark your algorithm.  You can use one of
+the included algorithms as a benchmark standard, as well.
+
+Sort Bench includes a few test case files, which can be helpful when
+trying to test for corner cases.
+
+h2. License
+
+MIT - See LICENSE
+
