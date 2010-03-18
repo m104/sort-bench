@@ -7,7 +7,7 @@
 #include "algorithms/lib.h"
 
 
-char *VERSION = "0.1.0";
+char *VERSION = "0.2.0";
 
 void print_version() {
   printf("Sort Bench, version %s\n", VERSION);
@@ -23,14 +23,18 @@ void print_legal() {
 }
 
 void print_usage() {
-  printf("usage: sort-bench <OPTIONS> [NUMBER [NUMBER ...]] \n");
+  printf("usage: sort-bench [<OPTIONS>] FILE \n");
   printf("\n");
   printf("options:\n");
+  printf("     --version:  version and legal information\n");
   printf("    --help, -h:  usage information\n");
-  printf("            -v:  verbose mode\n");
+  printf("            -v:  verbose\n");
+  printf("            -q:  quiet\n");
   printf("            -l:  list algorithms\n");
   printf("  -a ALGORITHM:  use a specific algorithm (default: lib_qsort)\n");
   printf("     -t TRIALS:  perform a number of trials (default: 1)\n");
+  printf("\n");
+  printf("FILE should contain a number of integers, one per line\n");
   printf("\n");
 }
 
@@ -62,6 +66,7 @@ int main(int argc, char **argv) {
   void (*sort)(int *, int);
   int trials;
   int verbose;
+  int quiet;
   /* trial outcome */
   int outcome;
   int diffs;
@@ -69,6 +74,10 @@ int main(int argc, char **argv) {
   char option = ' ';
   char *arg;
   int arg_offset;
+  /* file processing */
+  FILE *file;
+  const char *filename;
+  char buffer[1024];
   /* temporary */
   int i;
   int j;
@@ -78,8 +87,11 @@ int main(int argc, char **argv) {
   algo = algorithms;
   option = ' ';
   verbose = 0;
+  quiet = 0;
   trials = 1;
   arg_offset = 1;
+  file = stdin;
+  filename = "STDIN";
 
   /* parse the arguments */
   for (i = 1; i < argc; i++) {
@@ -125,16 +137,50 @@ int main(int argc, char **argv) {
           option = 't';
         } else if (strcmp(arg, "-v") == 0) {
           verbose = 1;
-        } else {
-          /* stop processing args */
+          quiet = 0;
+        } else if (strcmp(arg, "-q") == 0) {
+          quiet = 1;
+          verbose = 0;
+        } else if (strcmp(arg, "--") == 0) {
           i = argc;
-          arg_offset--;
+        } else { /* not recognized */
+          i = argc;
         }
     }
   }
 
-  n = argc - arg_offset;
-  originals = astrtoal((const char **) argv + arg_offset, n);
+  n = argc - --arg_offset;
+
+  /* any arguments left? */
+  if (n > 0) {
+    /* file or stdin? */
+    arg = argv[arg_offset];
+    if (strcmp(arg, "-") != 0) {
+      filename = arg;
+      if (!(file = fopen(filename, "r"))) {
+        perror("Could not open file");
+        return -1;
+      }
+    }
+  }
+
+  /* start with a small number of values */
+  n = 1024;
+  bytes = sizeof(int) * n;
+  originals = malloc(bytes);
+
+  for (i = 0; fgets(buffer, sizeof(buffer), file); i++) {
+    if (i + 1 > n) {
+      /* allocate 25% more space for our numbers */
+      n += n / 4;
+      bytes = sizeof(int) * n;
+      originals = realloc(originals, bytes);
+    }
+    j = strtol(buffer, &rest, 10);
+    originals[i] = j;
+  }
+
+  n = i;
 
   bytes = sizeof(int) * n;
   values = malloc(bytes);
@@ -147,12 +193,15 @@ int main(int argc, char **argv) {
   /* algorithm selection */
   sort = algo->sort;
 
-  printf("Algorithm: %s (%s)\n", algo->code, algo->name);
-  printf("Trials: %i\n", trials);
-  printf("Values: %i\n", n);
+  if (!quiet) {
+    printf("Algorithm: %s (%s)\n", algo->code, algo->name);
+    printf("Trials: %i\n", trials);
+    printf("Source: %s\n", filename);
+    printf("Values: %i\n", n);
+  }
 
   if (verbose) {
-    printf("Unsorted Array:\n");
+    printf("\nUnsorted Array:\n");
     print_array(originals, n);
     printf("\n");
   }
@@ -175,14 +224,19 @@ int main(int argc, char **argv) {
   if (n > 0) {
     diffs = array_differences(values, sorted, n);
     if (diffs) {
-      printf("verdict: FAIL\n");
-      printf(" incorrect values: %i of %i\n", diffs, n);
+      if (!quiet) {
+        printf("verdict: FAIL\n");
+        printf(" incorrect values: %i of %i\n", diffs, n);
+      }
       outcome = -1;
     } else {
-      printf("Verdict: pass\n");
+      if (!quiet) {
+        printf("Verdict: pass\n");
+      }
     }
   }
 
+  fclose(file);
   free(sorted);
   free(values);
   free(originals);
