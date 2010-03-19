@@ -142,14 +142,16 @@ int main(int argc, char **argv) {
           quiet = 1;
           verbose = 0;
         } else if (strcmp(arg, "--") == 0) {
+          arg_offset--;
           i = argc;
         } else { /* not recognized */
+          arg_offset--;
           i = argc;
         }
     }
   }
 
-  n = argc - --arg_offset;
+  n = argc - arg_offset;
 
   /* any arguments left? */
   if (n > 0) {

@@ -25,3 +25,6 @@ clean:
 
 dist-clean:
 	rm -rf $(STEPS) $(TEMPS)
+
+test: $(TARGET)
+	@./$(TARGET) -q -t 10000 cases/random-4000 && echo "pass" || echo "fail"
