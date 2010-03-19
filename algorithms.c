@@ -10,7 +10,7 @@ algorithm algorithms[] = {
     "Standard Quicksort",
     "System-dependant qsort()",
     &lib_qsort },
-
+#ifdef __DARWIN_UNIX03
   { "msort",
     "Standard Merge Sort",
     "System-dependant mergesort()",
@@ -20,7 +20,7 @@ algorithm algorithms[] = {
     "Standard Heap Sort",
     "System-dependant heapsort()",
     &lib_hsort },
-
+#endif
   { "qsort_hybrid",
     "QuickSort - optimized hybrid",
     "In-place pointer-based optimized quicksort, hybridized with insertion sort",
