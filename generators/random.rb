@@ -16,7 +16,6 @@ if (min_value > max_value)
 end
 
 range = max_value - min_value + 1
-srand() # make it truly randomish
 
 begin
   loop do
